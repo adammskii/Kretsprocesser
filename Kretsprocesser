@@ -1,0 +1,114 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load data from file, skipping the first row
+data = np.loadtxt('Data_Heat_Pump_Del_2.txt', delimiter='\t', usecols=(0, 1, 2, 3), unpack=True, skiprows=1)
+
+# Extract columns
+time = data[0]
+status = data[1] * 4500
+hot_temp = data[2]
+cold_temp = data[3]
+
+# Calculate cumulative energy
+cumulative_energy = np.cumsum(status)
+
+# Plot status vs time with polynomial fit and derivative
+plt.figure(figsize=(10, 6))
+plt.plot(time, cumulative_energy, label='Cumulative Energy', marker='o', linestyle='-')
+p_cumulative_energy = np.polyfit(time, cumulative_energy, 1)
+f_cumulative_energy = np.poly1d(p_cumulative_energy)
+plt.plot(time, f_cumulative_energy(time), label='Linear Fit', linestyle='--')
+fp_cumulative_energy = np.polyder(f_cumulative_energy)
+plt.plot(time, fp_cumulative_energy(time), label='Derivative', linestyle=':')
+plt.title('Cumulative Energy vs Time')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Cumulative Energy')
+plt.legend()
+plt.grid(True)
+
+# Add equation to plot
+k_cumulative_energy, m_cumulative_energy = p_cumulative_energy[0], p_cumulative_energy[1]
+eqn_cumulative_energy = f'$y = {k_cumulative_energy:.2f}x + {m_cumulative_energy:.2f}$'
+plt.annotate(eqn_cumulative_energy, xy=(0.05, 0.95), xycoords='axes fraction', fontsize=12, ha='left', va='top')
+
+# Plot hot temperature vs time with polynomial fit and derivative
+plt.figure(figsize=(10, 6))
+plt.plot(time, hot_temp, label='Hot Temperature', marker='o', linestyle='-')
+p_hot_temp = np.polyfit(time, hot_temp, 3)
+f_hot_temp = np.poly1d(p_hot_temp)
+temp = f_hot_temp
+plt.plot(time, f_hot_temp(time), label='Linear Fit', linestyle='--')
+fp_hot_temp = np.polyder(f_hot_temp)
+plt.plot(time, fp_hot_temp(time), label='Derivative', linestyle=':')
+plt.title('Hot Temperature vs Time')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Temperature')
+plt.legend()
+plt.grid(True)
+
+# Add equation to plot
+k_hot_temp, m_hot_temp = p_hot_temp[0], p_hot_temp[1]
+eqn_hot_temp = f'$y = {k_hot_temp:.2f}x + {m_hot_temp:.2f}$'
+plt.annotate(eqn_hot_temp, xy=(0.05, 0.95), xycoords='axes fraction', fontsize=12, ha='left', va='top')
+
+# Plot cold temperature vs time with polynomial fit and derivative
+plt.figure(figsize=(10, 6))
+plt.plot(time, cold_temp, label='Cold Temperature', marker='o', linestyle='-')
+p_cold_temp = np.polyfit(time, cold_temp, 1)
+f_cold_temp = np.poly1d(p_cold_temp)
+plt.plot(time, f_cold_temp(time), label='Linear Fit', linestyle='--')
+fp_cold_temp = np.polyder(f_cold_temp)
+plt.plot(time, fp_cold_temp(time), label='Derivative', linestyle=':')
+plt.title('Cold Temperature vs Time')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Temperature')
+plt.legend()
+plt.grid(True)
+
+# Add equation to plot
+k_cold_temp, m_cold_temp = p_cold_temp[0], p_cold_temp[1]
+eqn_cold_temp = f'$y = {k_cold_temp:.2f}x + {m_cold_temp:.2f}$'
+plt.annotate(eqn_cold_temp, xy=(0.05, 0.95), xycoords='axes fraction', fontsize=12, ha='left', va='top')
+
+carnot_heat_factor = hot_temp / (hot_temp - cold_temp)
+
+# Plot Carnot heat factor vs time
+plt.figure(figsize=(10, 6))
+plt.plot(time, carnot_heat_factor, label='Carnot Heat Factor', marker='o', linestyle='-')
+plt.title('Carnot Heat Factor vs Time')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Carnot Heat Factor')
+plt.legend()
+plt.grid(True)
+
+# Calculate derivative of hot temperature polynomial fit
+hot_temp_derivative = np.polyder(temp)(time)
+print(temp)
+# Calculate derivative of cumulative energy
+cumulative_energy_derivative = np.gradient(cumulative_energy, time)
+cumulative_energy_derivative_value = np.mean(cumulative_energy_derivative)
+print(cumulative_energy_derivative_value)
+# Calculate real heat factor
+real_heat_factor = hot_temp_derivative*4186*10 / cumulative_energy_derivative_value
+
+# Plot Carnot heat factor and real heat factor vs time
+plt.figure(figsize=(10, 6))
+#plt.plot(time, carnot_heat_factor, label='Carnot Heat Factor', marker='o', linestyle='-')
+plt.plot(time, real_heat_factor, label='Real Heat Factor', marker='o', linestyle='-')
+plt.title('Real Heat Factor')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Heat Factor')
+plt.legend()
+plt.grid(True)
+
+heat_factor_ratio = real_heat_factor / carnot_heat_factor
+
+plt.plot(time, heat_factor_ratio, label='Real/Carnot Heat Factor', marker='o', linestyle='-')
+plt.title('Ratio of Real to Carnot Heat Factor vs Time')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Heat Factor Ratio')
+plt.legend()
+plt.grid(True)
+# Show plots
+plt.show()
